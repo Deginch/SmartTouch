@@ -1,0 +1,11 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:textColor="#4d4d4d"
+            android:key="started"
+            android:title="开启悬浮窗"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

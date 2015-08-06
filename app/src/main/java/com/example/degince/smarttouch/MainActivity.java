@@ -1,38 +1,44 @@
 package com.example.degince.smarttouch;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.preference.PreferenceActivity;
 import android.provider.Settings;
 import android.support.v4.view.accessibility.AccessibilityManagerCompat;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.accessibility.AccessibilityManager;
-import android.widget.Button;
 
 import java.util.List;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
+import java.util.List;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.preference.CheckBoxPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceActivity;
+import android.support.v4.view.accessibility.AccessibilityManagerCompat;
+import android.view.accessibility.AccessibilityManager;
 
-public class MainActivity extends PreferenceActivity implements PreferenceChangeListener {
+public class MainActivity extends PreferenceActivity {
 	private String TAG = "MainActivity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.prefs_list_content);
-		addPreferencesFromResource(R.xml.float_preference);
+		setContentView(R.layout.activity_main_list);
+		addPreferencesFromResource(R.xml.main_preference);
 	}
 
 	@Override
@@ -111,8 +117,4 @@ public class MainActivity extends PreferenceActivity implements PreferenceChange
 		return super.onOptionsItemSelected(item);
 	}
 
-	@Override
-	public void preferenceChange(PreferenceChangeEvent pce) {
-
-	}
 }
