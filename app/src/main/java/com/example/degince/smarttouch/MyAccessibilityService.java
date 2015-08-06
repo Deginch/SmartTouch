@@ -59,7 +59,7 @@ public class MyAccessibilityService extends AccessibilityService {
 
 	@Override
 	public void onAccessibilityEvent(AccessibilityEvent event) {
-		Log.i(TAG,"辅助事件发生");
+
 	}
 
 	@Override

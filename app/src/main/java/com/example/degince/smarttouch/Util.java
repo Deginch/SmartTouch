@@ -2,8 +2,10 @@ package com.example.degince.smarttouch;
 
 import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -11,6 +13,8 @@ import android.content.pm.ResolveInfo;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -23,7 +27,6 @@ import java.util.List;
 public class Util {
 	public static float UnClickAlpha =0.1f;
 	public static float ClickAlpha =0.7f;
-
 	public static void virtualHome(Context mContext) {
 		// 模拟HOME键
 		Intent i = new Intent(Intent.ACTION_MAIN);
@@ -92,6 +95,9 @@ public class Util {
 		intentCamera.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		intentCamera.setAction("android.media.action.STILL_IMAGE_CAMERA");
 		mContext.startActivity(intentCamera);
+	}
+
+	public static void lockScreen(Context context){
 	}
 
 	//震动

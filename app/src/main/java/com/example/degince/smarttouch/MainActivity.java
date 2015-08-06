@@ -16,6 +16,8 @@ import android.view.accessibility.AccessibilityManager;
 
 import java.util.List;
 import java.util.List;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.AlertDialog;
@@ -31,7 +33,7 @@ import android.preference.PreferenceActivity;
 import android.support.v4.view.accessibility.AccessibilityManagerCompat;
 import android.view.accessibility.AccessibilityManager;
 
-public class MainActivity extends PreferenceActivity {
+public class MainActivity extends PreferenceActivity implements PreferenceChangeListener{
 	private String TAG = "MainActivity";
 
 	@Override
@@ -71,7 +73,6 @@ public class MainActivity extends PreferenceActivity {
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,
 							                    int whichButton) {
-								// 进入GPS设置页面
 								Intent intent = new Intent("android.settings.ACCESSIBILITY_SETTINGS");
 								intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 								try {
@@ -95,26 +96,9 @@ public class MainActivity extends PreferenceActivity {
 
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.menu_main, menu);
-		return true;
-	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-
-		//noinspection SimplifiableIfStatement
-		if (id == R.id.action_settings) {
-			return true;
-		}
-
-		return super.onOptionsItemSelected(item);
+	public void preferenceChange(PreferenceChangeEvent pce) {
+		Log.i(TAG,"配置发生改变");
 	}
-
 }

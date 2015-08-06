@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.os.Vibrator;
 import android.util.Log;
@@ -30,14 +31,15 @@ public class MyFloatingView extends LinearLayout {
 	//创建浮动窗口设置布局参数的对象
 	WindowManager mWindowManager;
 	Button mFLoatButton;
-	private boolean isLongClick = false;
-	private float startX, startY, currentX, currentY;
 	private GestureDetector gestureDetector;
+	private static SharedPreferences sharedPreferences;
+	private String preferencesName = "com.example.degince.smarttouch_preferences";
 
 	public MyFloatingView(Context context, AccessibilityService accessibilityService) {
 		super(context);
 		this.context = context;
 		this.accessibilityService = accessibilityService;
+		sharedPreferences = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
 	}
 
 
@@ -58,8 +60,8 @@ public class MyFloatingView extends LinearLayout {
 		//调整悬浮窗显示的停靠位置为左侧置顶
 		wmParams.gravity = Gravity.LEFT | Gravity.TOP;
 		// 以屏幕左上角为原点，设置x、y初始值，相对于gravity
-		wmParams.x = 0;
-		wmParams.y = 0;
+		wmParams.x = 50;
+		wmParams.y = 200;
 
 		//设置悬浮窗口长宽数据
 		wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -91,97 +93,8 @@ public class MyFloatingView extends LinearLayout {
 				gestureDetector.onTouchEvent(event);
 				// 一定要返回true，不然获取不到完整的事件
 				return true;
-//				//获取当前坐标
-//				float x = event.getX();
-//				float y = event.getY();
-//				switch (event.getAction()) {
-//					case MotionEvent.ACTION_DOWN:    //捕获手指触摸按下动作
-//						startX = x;
-//						startY = y;
-//						Log.i(TAG, "down");
-//						mFLoatButton.setAlpha(Util.ClickAlpha);
-//						break;
-//
-//					case MotionEvent.ACTION_MOVE:    //捕获手指触摸移动动作
-//						Log.i(TAG,"Move");
-//						if (isLongClick) {
-//							//getRawX是触摸位置相对于屏幕的坐标，getX是相对于按钮的坐标
-//							wmParams.x = (int) event.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
-//							//减25为状态栏的高度
-//							wmParams.y = (int) event.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
-//							//刷新
-////                            Log.i(TAG, "move");
-//							mWindowManager.updateViewLayout(mFloatLayout, wmParams);
-//						} else {
-//
-//						}
-//						break;
-//
-//					case MotionEvent.ACTION_UP:    //捕获手指触摸离开动作
-//						mFLoatButton.setAlpha(Util.UnClickAlpha);
-//						currentX = x;
-//						currentY = y;
-//						float differX = currentX - startX;
-//						float differY = currentY - startY;
-//						if (Math.abs(differX) > 8 && Math.abs(differY) > 8) {
-//							if (Math.abs(differX) / Math.abs(differY) > 1.5) {
-//								//左右滑
-//								if (differX > 0) {
-//									Log.i(TAG, "sliding right");
-//									vibrate(1000);
-//								} else {
-//									Log.i(TAG, "sliding left");
-//									vibrate(1000);
-//									mFLoatButton.clearFocus();
-//								}
-//							} else {
-//								//上下滑
-//								if (differY > 0) {
-//									Log.i(TAG, "sliding down");
-//									vibrate(1000);
-//									Util.openStatusBar(context);
-//								} else {
-//									Intent intent = new Intent();
-//									intent.setAction(Intent.ACTION_MAIN);
-//									intent.addCategory(Intent.CATEGORY_HOME);
-//									intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//									context.startActivity(intent);
-//									Log.i(TAG, "sliding up");
-//									vibrate(1000);
-//								}
-//							}
-//						}
-//						isLongClick = false;
-//						Log.i(TAG, "up");
-//						break;
-//					default:
-//						break;
-//				}
-//				//刷新
-////                mWindowManager.updateViewLayout(mFloatLayout, wmParams);
-//
-//				return false;  //此处必须返回false，否则OnClickListener获取不到监听
 			}
 		});
-
-//		mFLoatButton.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				// TODO Auto-generated method stub
-//				Log.i(TAG, "onClick");
-//				Util.virtualBack(accessibilityService);
-//				vibrate(1000);
-//			}
-//		});
-//		mFLoatButton.setOnLongClickListener(new View.OnLongClickListener() {
-//			@Override
-//			public boolean onLongClick(View v) {
-//				Log.i(TAG, "onLongClick");
-//				vibrate(1500);
-//				isLongClick = true;
-//				return false;
-//			}
-//		});
 	}
 
 	private String getActionName(int action) {
@@ -205,6 +118,49 @@ public class MyFloatingView extends LinearLayout {
 		return name;
 	}
 
+	private void swipeUp() {
+		doGestureOperation(sharedPreferences.getString("swipeUp", "nothing"));
+	}
+
+	private void swipeDown() {
+		doGestureOperation(sharedPreferences.getString("swipeDown", "nothing"));
+	}
+
+	private void swipeRight() {
+		doGestureOperation(sharedPreferences.getString("swipeRight", "nothing"));
+	}
+
+	private void swipeLeft() {
+		doGestureOperation(sharedPreferences.getString("swipeLeft", "nothing"));
+	}
+
+	private void singleClick() {
+		doGestureOperation(sharedPreferences.getString("singleClick", "nothing"));
+	}
+
+	private void doubleClick() {
+		doGestureOperation(sharedPreferences.getString("doubleClick", "nothing"));
+	}
+
+	private void longClik() {
+		doGestureOperation(sharedPreferences.getString("longClik", "nothing"));
+	}
+
+	private void doGestureOperation(String gesture) {
+		if (gesture.equals("openBar")) {
+			Util.openStatusBar(context);
+		} else if (gesture.equals("recents")) {
+			Util.recentApps(accessibilityService);
+		} else if (gesture.equals("back")) {
+			Util.virtualBack(accessibilityService);
+		} else if (gesture.equals("home")) {
+			Util.virtualHome(context);
+		} else if (gesture.equals("camera")) {
+			Util.openCamera(context);
+		}
+
+	}
+
 	class MyOnGestureListener extends GestureDetector.SimpleOnGestureListener {
 		private boolean CanMoving = false;
 
@@ -212,8 +168,7 @@ public class MyFloatingView extends LinearLayout {
 		public boolean onSingleTapUp(MotionEvent e) {
 			Log.i(TAG, "onSingleTapUp-----" + getActionName(e.getAction()));
 			CanMoving = false;
-			if(e.getAction()==MotionEvent.ACTION_UP){
-				Util.virtualBack(accessibilityService);
+			if (e.getAction() == MotionEvent.ACTION_UP) {
 				mFLoatButton.setAlpha(Util.UnClickAlpha);
 			}
 			return false;
@@ -222,7 +177,7 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public void onLongPress(MotionEvent e) {
 			Log.i(TAG, "onLongPress-----" + getActionName(e.getAction()));
-			Util.vibrate(1000, context);
+			longClik();
 			mFLoatButton.setAlpha(Util.UnClickAlpha);
 		}
 
@@ -255,22 +210,24 @@ public class MyFloatingView extends LinearLayout {
 
 				if (dy < -20 && Math.abs(velocityY) > Math.abs(velocityX)) {
 					Log.i(TAG, "向上");
-					Util.openRecentApp(accessibilityService);
+					swipeUp();
 				}
 
 				if (dy > 20 && Math.abs(velocityY) > Math.abs(velocityX)) {
 					Log.i(TAG, "向下");
-					Util.virtualHome(context);
+					swipeDown();
 				}
 
 				if (dx > 20 && Math.abs(velocityX) > Math.abs(velocityY)) {
 					Log.i(TAG, "向右");
+					swipeRight();
 				}
 				if (dx < -20 && Math.abs(velocityX) > Math.abs(velocityY)) {
 					Log.i(TAG, "向左");
+					swipeLeft();
 				}
 			}
-			CanMoving=false;
+			CanMoving = false;
 			mFLoatButton.setAlpha(Util.UnClickAlpha);
 			return false;
 		}
@@ -292,14 +249,14 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
 			Log.i(TAG, "onDoubleTap-----" + getActionName(e.getAction()));
-			Util.virtualHome(context);
+			doubleClick();
 			return false;
 		}
 
 		@Override
 		public boolean onDoubleTapEvent(MotionEvent e) {
 			Log.i(TAG, "onDoubleTapEvent-----" + getActionName(e.getAction()));
-			if(e.getAction()==MotionEvent.ACTION_UP){
+			if (e.getAction() == MotionEvent.ACTION_UP) {
 				mFLoatButton.setAlpha(Util.UnClickAlpha);
 			}
 			return false;
@@ -309,6 +266,8 @@ public class MyFloatingView extends LinearLayout {
 		public boolean onSingleTapConfirmed(MotionEvent e) {
 			Log.i(TAG, "onSingleTapConfirmed-----" + getActionName(e.getAction()));
 			mFLoatButton.setAlpha(Util.UnClickAlpha);
+			//开启了双击功能,单击需要更多时间
+			singleClick();
 			return false;
 		}
 	}
