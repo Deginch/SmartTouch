@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -16,6 +17,7 @@ import android.os.Build.VERSION;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
@@ -27,6 +29,7 @@ import java.util.List;
 public class Util {
 	public static float UnClickAlpha =0.1f;
 	public static float ClickAlpha =0.7f;
+	private static String TAG="Util";
 	public static void virtualHome(Context mContext) {
 		// 模拟HOME键
 		Intent i = new Intent(Intent.ACTION_MAIN);
@@ -34,6 +37,8 @@ public class Util {
 		i.addCategory(Intent.CATEGORY_HOME);
 		mContext.startActivity(i);
 	}
+
+
 
 	public static void virtualBack(AccessibilityService service) {
 		if (VERSION.SDK_INT < 16) {
@@ -105,5 +110,37 @@ public class Util {
 		Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 		vibrator.vibrate(time);
 		vibrator.cancel();
+	}
+
+	public static int getSize(SharedPreferences sharedPreferences) {
+		Log.i(TAG, "尺寸为Size=" + sharedPreferences.getInt("size", 70));
+		return sharedPreferences.getInt("size", 70);
+	}
+
+	public static int getAlpha(SharedPreferences sharedPreferences){
+		int alpha =sharedPreferences.getInt("alpha", 40);
+		Log.i(TAG, "透明度为" + alpha);
+		UnClickAlpha=alpha/100f;
+		return alpha;
+	}
+
+	public static int getColor(SharedPreferences sharedPreferences) {
+		String color = sharedPreferences.getString("color", "green");
+		Log.i(TAG, "颜色为" + color);
+		int colorInt = 0xff000000;
+		if (color.equals("black")) {
+			colorInt = 0xff000000;
+		} else if (color.equals("white")) {
+			colorInt = 0xffffffff;
+		} else if (color.equals("blue")) {
+			colorInt = 0xff6dcaec;
+		} else if (color.equals("green")) {
+			colorInt = 0xffb9e3d9;
+		} else if (color.equals("red")) {
+			colorInt = 0xffff7979;
+		} else if (color.equals("orange")) {
+			colorInt = 0xffffd060;
+		}
+		return colorInt;
 	}
 }

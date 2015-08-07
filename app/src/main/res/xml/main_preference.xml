@@ -1,28 +1,46 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
+        android:layout="@layout/prefs_category_widget"
         android:title="启用">
         <SwitchPreference
+            android:background="@color/barColor"
             android:defaultValue="true"
             android:key="started"
-            android:background="@color/barColor"
-            android:title="开启悬浮窗"
-            android:layout="@layout/list_items"/>
+            android:layout="@layout/list_items"
+            android:title="开启悬浮窗"/>
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="按钮设置">
+        android:layout="@layout/prefs_category_widget"
+        android:title="显示">
 
-    <PreferenceScreen
-        android:layout="@layout/list_items"
-        android:title="按钮的大小和颜色"
-        android:widgetLayout="@layout/arrow_widget" >
-        <!--<intent android:action="com.kale.intent.action.Display_ACTION" />-->
-    </PreferenceScreen>
+        <!--<com.example.degince.smarttouch.preference.MyListPreference-->
+            <!--android:defaultValue="green"-->
+            <!--android:dialogTitle="选择悬浮窗的背景色"-->
+            <!--android:entries="@array/drawColor"-->
+            <!--android:entryValues="@array/drawColor_value"-->
+            <!--android:key="color"-->
+            <!--android:layout="@layout/list_items"-->
+            <!--android:summary="绿"-->
+            <!--android:title="颜色"/>-->
+
+        <com.example.degince.smarttouch.preference.MySeekBarPreference
+            android:key="alpha"
+            android:layout="@layout/list_items"
+            android:title="透明度"/>
+
+        <com.example.degince.smarttouch.preference.MySeekBarPreference
+            android:key="size"
+            android:layout="@layout/list_items"
+            android:title="大小    "/>
+
     </PreferenceCategory>
 
+
     <PreferenceCategory
-        android:title="功能" >
+        android:layout="@layout/prefs_category_widget"
+        android:title="功能">
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="nothing"
@@ -32,7 +50,7 @@
             android:key="swipeUp"
             android:layout="@layout/list_items"
             android:summary="收起通知栏"
-            android:title="向上滑动" />
+            android:title="向上滑动"/>
 
 
         <com.example.degince.smarttouch.preference.MyListPreference
@@ -43,7 +61,7 @@
             android:key="swipeDown"
             android:layout="@layout/list_items"
             android:summary="呼出通知栏"
-            android:title="向下滑动" />
+            android:title="向下滑动"/>
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="nothing"
@@ -53,7 +71,7 @@
             android:key="swipeLeft"
             android:layout="@layout/list_items"
             android:summary="查看最近任务"
-            android:title="向左滑动" />
+            android:title="向左滑动"/>
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="nothing"
@@ -63,7 +81,7 @@
             android:key="swipeRight"
             android:layout="@layout/list_items"
             android:summary="查看最近任务"
-            android:title="向右滑动" />
+            android:title="向右滑动"/>
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="back"
@@ -73,7 +91,7 @@
             android:key="singleClick"
             android:layout="@layout/list_items"
             android:summary="无功能"
-            android:title="单击" />
+            android:title="单击"/>
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="home"
@@ -83,7 +101,7 @@
             android:key="doubleClick"
             android:layout="@layout/list_items"
             android:summary="返回键"
-            android:title="双击" />
+            android:title="双击"/>
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="nothing"
@@ -93,32 +111,33 @@
             android:key="longClick"
             android:layout="@layout/list_items"
             android:summary="模拟HOME键"
-            android:title="长按" />
+            android:title="长按"/>
     </PreferenceCategory>
 
 
-
     <PreferenceCategory
-        android:title="联系作者" >
+        android:layout="@layout/prefs_category_widget"
+        android:title="联系作者">
 
         <PreferenceScreen
             android:icon="@drawable/github"
             android:layout="@layout/list_items"
-            android:title="github"
-            android:summary="Deginch">
+            android:summary="Deginch"
+            android:title="github">
             <intent
                 android:action="android.intent.action.VIEW"
-                android:data="https://github.com/Deginch/SmartTouch" />
+                android:data="https://github.com/Deginch/SmartTouch"/>
         </PreferenceScreen>
 
         <Preference
             android:icon="@drawable/mail"
             android:key="mail"
             android:layout="@layout/list_items"
-            android:title="发邮件"
-            android:summary="247442249@163.com">
+            android:summary="247442249@163.com"
+            android:title="发邮件">
         </Preference>
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:layout="@layout/prefs_category_end_widget" />
 </PreferenceScreen>

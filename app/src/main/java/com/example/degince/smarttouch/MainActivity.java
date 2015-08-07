@@ -3,9 +3,14 @@ package com.example.degince.smarttouch;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.os.IBinder;
 import android.preference.PreferenceActivity;
+import android.preference.SwitchPreference;
 import android.provider.Settings;
 import android.support.v4.view.accessibility.AccessibilityManagerCompat;
 import android.os.Bundle;
@@ -32,15 +37,48 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.support.v4.view.accessibility.AccessibilityManagerCompat;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.SeekBar;
 
-public class MainActivity extends PreferenceActivity implements PreferenceChangeListener{
+import com.example.degince.smarttouch.preference.MyListPreference;
+import com.example.degince.smarttouch.preference.MySeekBarPreference;
+
+public class MainActivity extends PreferenceActivity implements OnPreferenceChangeListener, MySeekBarPreference.OnSeekBarPrefsChangeListener {
 	private String TAG = "MainActivity";
+	private static SharedPreferences sharedPreferences;
+	private MySeekBarPreference alphaSb, widthSb, heightSb, distanceSb;
+	private SwitchPreference started;
+	private String preferencesName = "com.example.degince.smarttouch_preferences";
+	private MyAccessibilityService accessibilityService;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main_list);
 		addPreferencesFromResource(R.xml.main_preference);
+		sharedPreferences = getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
+		//获取辅助服务
+		accessibilityService=MyAccessibilityService.getSharedInstance();
+
+		started=(SwitchPreference)findPreference("started");
+		started.setOnPreferenceChangeListener(this);
+		if(accessibilityService!=null) {
+			started.setChecked(accessibilityService.isFLoatViewCreated());
+		}else {
+			started.setChecked(false);
+		}
+
+
+		alphaSb = (MySeekBarPreference) findPreference("alpha");// 找到preference
+		alphaSb.setDefaultProgressValue(Util.getAlpha(sharedPreferences));// 设置起始时的进度
+		alphaSb.setMax(60);// 设置最大的数值，不超过10000。如果超过了请在seekbarPreference源码中进行修改max值
+		alphaSb.setOnSeekBarPrefsChangeListener(this);// 设置监听器
+
+
+		widthSb = (MySeekBarPreference) findPreference("size");
+		widthSb.setMax(200);
+		widthSb.setDefaultProgressValue(Util.getSize(sharedPreferences));
+		widthSb.setOnSeekBarPrefsChangeListener(this);
 	}
 
 	@Override
@@ -61,14 +99,17 @@ public class MainActivity extends PreferenceActivity implements PreferenceChange
 		}
 		if (!isEnabled) {
 			AccessibilitySetting();
+		}else{
+			accessibilityService=MyAccessibilityService.getSharedInstance();
 		}
 	}
 
+	//开启辅助服务设置
 	private void AccessibilitySetting() {
 		Log.i(TAG, "不存在,提示");
 		new AlertDialog.Builder(MainActivity.this)
 				.setTitle("提醒")
-				.setMessage("是否开启辅助服务")
+				.setMessage("打开悬浮窗需要开启辅助服务，点击设置开启。")
 				.setPositiveButton("设置",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,
@@ -96,9 +137,51 @@ public class MainActivity extends PreferenceActivity implements PreferenceChange
 
 	}
 
+	@Override
+	public boolean onPreferenceChange(Preference preference, Object newValue) {
+		Log.i(TAG,"onPreferenceChange+"+preference.getKey()+"*"+newValue);
+		if(preference.getKey().equals("started")) {
+			if (accessibilityService != null) {
+				if (newValue.equals(true)) {
+					accessibilityService.createFloatView();
+				} else {
+					accessibilityService.closeFloatView();
+				}
+			}else{
+				accessibilityService=MyAccessibilityService.getSharedInstance();
+				AccessibilitySetting();
+				return false;
+			}
+
+		}
+		return true;
+	}
 
 	@Override
-	public void preferenceChange(PreferenceChangeEvent pce) {
-		Log.i(TAG,"配置发生改变");
+	public void onStopTrackingTouch(String key, SeekBar seekBar) {
+		Log.i(TAG,"onStopTrackingTouch");
+		if(accessibilityService!=null) {
+			accessibilityService.updateButton();
+		}else {
+			accessibilityService=MyAccessibilityService.getSharedInstance();
+		}
+
+	}
+
+	@Override
+	public void onStartTrackingTouch(String key, SeekBar seekBar) {
+		Log.i(TAG,"onStartTrackingTouch");
+
+	}
+
+	@Override
+	public void onProgressChanged(String key, SeekBar seekBar, int progress, boolean fromUser) {
+		Log.i(TAG,"onProgressChanged");
+		if(accessibilityService!=null) {
+			accessibilityService.updateButton();
+		}else {
+			accessibilityService=MyAccessibilityService.getSharedInstance();
+		}
+
 	}
 }

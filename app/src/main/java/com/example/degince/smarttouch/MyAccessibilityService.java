@@ -6,6 +6,7 @@ import android.app.Service;
 import android.app.UiAutomation;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Vibrator;
@@ -24,26 +25,36 @@ import android.widget.Toast;
 import java.util.List;
 
 public class MyAccessibilityService extends AccessibilityService {
-	//定义浮动窗口布局
-	LinearLayout mFloatLayout;
-	WindowManager.LayoutParams wmParams;
-	//创建浮动窗口设置布局参数的对象
-	WindowManager mWindowManager;
-	Button mFLoatButton;
-	private boolean isLongClick = false;
-	private float startX, startY, currentX, currentY;
 
 	private String TAG = "MyAccessibilityService";
-	private AccessibilityService accessibilityService;
+	private static MyAccessibilityService sharedInstance;
+	private MyFloatingView myFloatingView;
+	private boolean isFLoatViewCreated=false;
 	public MyAccessibilityService(){
-		accessibilityService=this;
 	}
 
 	@Override
 	public void onCreate(){
-//		createFloatView();
-		MyFloatingView myFloatingView= new MyFloatingView(this,this);
+		myFloatingView= new MyFloatingView(this,this);
+	}
+
+	public void createFloatView(){
 		myFloatingView.createFloatView();
+		isFLoatViewCreated=true;
+	}
+
+	public void closeFloatView(){
+		myFloatingView.closeFloatView();
+		isFLoatViewCreated=false;
+	}
+
+	public boolean isFLoatViewCreated(){
+		return  this.isFLoatViewCreated;
+	}
+	//重载悬浮窗
+	public void updateButton(){
+		Log.i(TAG,"重新刷新按钮");
+		myFloatingView.updateFloatButton();
 	}
 
 	@Override
@@ -64,12 +75,23 @@ public class MyAccessibilityService extends AccessibilityService {
 
 	@Override
 	protected void onServiceConnected() {
+		sharedInstance=this;
 		Log.i(TAG, "连接辅助服务");
 	}
 
 	@Override
 	public void onInterrupt() {}
 
+	@Override
+	public boolean onUnbind(Intent intent) {
+		sharedInstance = null;
+		return super.onUnbind(intent);
+	}
 
+
+	//获取辅助服务实例,用于改变button
+	public static MyAccessibilityService getSharedInstance() {
+		return sharedInstance;
+	}
 
 }

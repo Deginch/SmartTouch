@@ -13,6 +13,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
@@ -22,6 +23,7 @@ import android.widget.LinearLayout;
  * Created by Degince on 2015/8/5.
  */
 public class MyFloatingView extends LinearLayout {
+	private boolean CanMoving = false;
 	private AccessibilityService accessibilityService;
 	private final Context context;
 	private String TAG = "MyFloatingView";
@@ -91,10 +93,39 @@ public class MyFloatingView extends LinearLayout {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				gestureDetector.onTouchEvent(event);
+				switch (event.getAction()){
+					case MotionEvent.ACTION_UP:
+						Log.i(TAG, "TouchListener ACTION_UP");
+						mFLoatButton.setAlpha(Util.UnClickAlpha);
+						CanMoving=false;
+						break;
+					case MotionEvent.ACTION_DOWN:
+						mFLoatButton.setAlpha(Util.ClickAlpha);
+						break;
+				}
+
 				// 一定要返回true，不然获取不到完整的事件
 				return true;
 			}
 		});
+		updateFloatButton();
+	}
+
+	public void closeFloatView(){
+		if(mFloatLayout!=null) {
+			mWindowManager.removeView(mFloatLayout);
+			mFLoatButton = null;
+			mFloatLayout = null;
+		}
+	}
+
+	public void updateFloatButton(){
+		ViewGroup.LayoutParams params=new ViewGroup.LayoutParams(5, 5);
+		Log.i(TAG, "重新刷新按钮");
+//		//刷新透明度
+		mFLoatButton.setAlpha(Util.getAlpha(sharedPreferences) / 100f);
+//		mFLoatButton.setBackgroundColor(Util.getColor(sharedPreferences));
+		mFLoatButton.setLayoutParams(new LayoutParams(Util.getSize(sharedPreferences), Util.getSize(sharedPreferences)));
 	}
 
 	private String getActionName(int action) {
@@ -162,15 +193,10 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	class MyOnGestureListener extends GestureDetector.SimpleOnGestureListener {
-		private boolean CanMoving = false;
 
 		@Override
 		public boolean onSingleTapUp(MotionEvent e) {
 			Log.i(TAG, "onSingleTapUp-----" + getActionName(e.getAction()));
-			CanMoving = false;
-			if (e.getAction() == MotionEvent.ACTION_UP) {
-				mFLoatButton.setAlpha(Util.UnClickAlpha);
-			}
 			return false;
 		}
 
@@ -178,7 +204,7 @@ public class MyFloatingView extends LinearLayout {
 		public void onLongPress(MotionEvent e) {
 			Log.i(TAG, "onLongPress-----" + getActionName(e.getAction()));
 			longClik();
-			mFLoatButton.setAlpha(Util.UnClickAlpha);
+			Util.vibrate(1000, context);
 		}
 
 		@Override
@@ -227,8 +253,6 @@ public class MyFloatingView extends LinearLayout {
 					swipeLeft();
 				}
 			}
-			CanMoving = false;
-			mFLoatButton.setAlpha(Util.UnClickAlpha);
 			return false;
 		}
 
@@ -242,7 +266,6 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onDown(MotionEvent e) {
 			Log.i(TAG, "onDown-----" + getActionName(e.getAction()));
-			mFLoatButton.setAlpha(Util.ClickAlpha);
 			return false;
 		}
 
@@ -256,16 +279,12 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onDoubleTapEvent(MotionEvent e) {
 			Log.i(TAG, "onDoubleTapEvent-----" + getActionName(e.getAction()));
-			if (e.getAction() == MotionEvent.ACTION_UP) {
-				mFLoatButton.setAlpha(Util.UnClickAlpha);
-			}
 			return false;
 		}
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
 			Log.i(TAG, "onSingleTapConfirmed-----" + getActionName(e.getAction()));
-			mFLoatButton.setAlpha(Util.UnClickAlpha);
 			//开启了双击功能,单击需要更多时间
 			singleClick();
 			return false;
