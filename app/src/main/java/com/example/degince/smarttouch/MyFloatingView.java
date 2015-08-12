@@ -62,8 +62,8 @@ public class MyFloatingView extends LinearLayout {
 		//调整悬浮窗显示的停靠位置为左侧置顶
 		wmParams.gravity = Gravity.LEFT | Gravity.TOP;
 		// 以屏幕左上角为原点，设置x、y初始值，相对于gravity
-		wmParams.x = 50;
-		wmParams.y = 200;
+		wmParams.x = 300;
+		wmParams.y = 800;
 
 		//设置悬浮窗口长宽数据
 		wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -80,7 +80,7 @@ public class MyFloatingView extends LinearLayout {
 		mWindowManager.addView(mFloatLayout, wmParams);
 		//浮动窗口按钮
 		mFLoatButton = (Button) mFloatLayout.findViewById(R.id.float_id);
-		mFLoatButton.setAlpha(Util.UnClickAlpha);
+		mFLoatButton.setBackgroundResource(Util.getButtonBackground(sharedPreferences));
 		mFloatLayout.measure(View.MeasureSpec.makeMeasureSpec(0,
 				View.MeasureSpec.UNSPECIFIED), View.MeasureSpec
 				.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -93,14 +93,25 @@ public class MyFloatingView extends LinearLayout {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				gestureDetector.onTouchEvent(event);
-				switch (event.getAction()){
+				switch (event.getAction()) {
 					case MotionEvent.ACTION_UP:
 						Log.i(TAG, "TouchListener ACTION_UP");
 						mFLoatButton.setAlpha(Util.UnClickAlpha);
-						CanMoving=false;
+						CanMoving = false;
 						break;
 					case MotionEvent.ACTION_DOWN:
 						mFLoatButton.setAlpha(Util.ClickAlpha);
+						break;
+					case MotionEvent.ACTION_MOVE:
+						if (CanMoving) {
+							//getRawX是触摸位置相对于屏幕的坐标，getX是相对于按钮的坐标
+							wmParams.x = (int) event.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
+							//减25为状态栏的高度
+							wmParams.y = (int) event.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
+							//刷新
+							Log.i(TAG, "move");
+							mWindowManager.updateViewLayout(mFloatLayout, wmParams);
+						}
 						break;
 				}
 
@@ -120,12 +131,37 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	public void updateFloatButton(){
-		ViewGroup.LayoutParams params=new ViewGroup.LayoutParams(5, 5);
-		Log.i(TAG, "重新刷新按钮");
+		if(mFLoatButton!=null) {
+			ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(5, 5);
+			Log.i(TAG, "重新刷新按钮");
 //		//刷新透明度
-		mFLoatButton.setAlpha(Util.getAlpha(sharedPreferences) / 100f);
+			mFLoatButton.setAlpha(Util.getAlpha(sharedPreferences) / 100f);
 //		mFLoatButton.setBackgroundColor(Util.getColor(sharedPreferences));
-		mFLoatButton.setLayoutParams(new LayoutParams(Util.getSize(sharedPreferences), Util.getSize(sharedPreferences)));
+			mFLoatButton.setLayoutParams(new LayoutParams(Util.getSize(sharedPreferences), Util.getSize(sharedPreferences)));
+		}
+	}
+
+	//更新图标
+	public void updateShape(String shape){
+		int imageId=R.drawable.round_square;
+		if(shape.equals("round")){
+			imageId=R.drawable.round;
+		}else if(shape.equals("roundSquare")){
+			imageId=R.drawable.round_square;
+		}
+		else if(shape.equals("square")){
+			imageId=R.drawable.square;
+		}
+		else if(shape.equals("heart")){
+			imageId=R.drawable.heart;
+		}else if(shape.equals("star")){
+			imageId=R.drawable.star;
+		}
+		try {
+			mFLoatButton.setBackgroundResource(imageId);
+		}catch (Exception e){
+			Log.i(TAG,"更新形状失败+"+e.getMessage());
+		}
 	}
 
 	private String getActionName(int action) {
@@ -174,7 +210,7 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	private void longClik() {
-		doGestureOperation(sharedPreferences.getString("longClik", "nothing"));
+		doGestureOperation(sharedPreferences.getString("longClick", "nothing"));
 	}
 
 	private void doGestureOperation(String gesture) {
@@ -203,8 +239,8 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public void onLongPress(MotionEvent e) {
 			Log.i(TAG, "onLongPress-----" + getActionName(e.getAction()));
-			longClik();
-			Util.vibrate(1000, context);
+			Util.vibrate(1500,context);
+			CanMoving = true;
 		}
 
 		@Override
@@ -212,16 +248,6 @@ public class MyFloatingView extends LinearLayout {
 			Log.i(TAG,
 					"onScroll-----" + getActionName(e2.getAction()) + ",(" + e1.getX() + "," + e1.getY() + ") ,("
 							+ e2.getX() + "," + e2.getY() + ")");
-
-			if (CanMoving) {
-				//getRawX是触摸位置相对于屏幕的坐标，getX是相对于按钮的坐标
-				wmParams.x = (int) e2.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
-				//减25为状态栏的高度
-				wmParams.y = (int) e2.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
-				//刷新
-				Log.i(TAG, "move");
-				mWindowManager.updateViewLayout(mFloatLayout, wmParams);
-			}
 			return false;
 		}
 
@@ -259,8 +285,6 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public void onShowPress(MotionEvent e) {
 			Log.i(TAG, "onShowPress-----" + getActionName(e.getAction()));
-			Util.vibrate(1000, context);
-			CanMoving = true;
 		}
 
 		@Override

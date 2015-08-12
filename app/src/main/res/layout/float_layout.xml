@@ -12,7 +12,6 @@
         android:id="@+id/float_id"
         android:clickable="true"
         android:enabled="true"
-        android:background="@drawable/bg_big"
         >
         </Button>
 

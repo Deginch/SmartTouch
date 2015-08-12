@@ -1,6 +1,7 @@
 package com.example.degince.smarttouch;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
@@ -19,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.accessibility.AccessibilityManager;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.List;
 import java.util.prefs.PreferenceChangeEvent;
@@ -37,18 +40,22 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.support.v4.view.accessibility.AccessibilityManagerCompat;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import com.example.degince.smarttouch.preference.MyListPreference;
 import com.example.degince.smarttouch.preference.MySeekBarPreference;
+import com.example.degince.smarttouch.version.UpdateChecker;
 
 public class MainActivity extends PreferenceActivity implements OnPreferenceChangeListener, MySeekBarPreference.OnSeekBarPrefsChangeListener {
 	private String TAG = "MainActivity";
 	private static SharedPreferences sharedPreferences;
 	private MySeekBarPreference alphaSb, widthSb, heightSb, distanceSb;
 	private SwitchPreference started;
+	private MyListPreference shape;
 	private String preferencesName = "com.example.degince.smarttouch_preferences";
 	private MyAccessibilityService accessibilityService;
+	private UpdateChecker update;
 
 
 	@Override
@@ -60,11 +67,15 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 		//获取辅助服务
 		accessibilityService=MyAccessibilityService.getSharedInstance();
 
+		shape=(MyListPreference)findPreference("shape");
+		shape.setOnPreferenceChangeListener(this);
+		shape.setDefaultValue(Util.getButtonBackground(sharedPreferences));
+
 		started=(SwitchPreference)findPreference("started");
 		started.setOnPreferenceChangeListener(this);
 		if(accessibilityService!=null) {
 			started.setChecked(accessibilityService.isFLoatViewCreated());
-		}else {
+		}else{
 			started.setChecked(false);
 		}
 
@@ -76,15 +87,65 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 
 
 		widthSb = (MySeekBarPreference) findPreference("size");
-		widthSb.setMax(200);
+		widthSb.setMax(400);
 		widthSb.setDefaultProgressValue(Util.getSize(sharedPreferences));
 		widthSb.setOnSeekBarPrefsChangeListener(this);
+
+
+		update = new UpdateChecker(MainActivity.this);
+		remindUpdateApp();
+	}
+
+
+	//自动检查更新
+	private void remindUpdateApp(){
+		SimpleDateFormat formatter = new SimpleDateFormat ("yyyyMMdd");
+		Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+		String curDateString = formatter.format(curDate);
+		SharedPreferences mySharedPreferences = getSharedPreferences("setting",
+				Activity.MODE_PRIVATE);
+		String lastUpdateString=mySharedPreferences.getString("lastUpdateDate", "20151111");
+		if(!lastUpdateString.equals(curDateString)){
+			update.setCheckUrl("http://111.198.57.26:8002/gis/android/appVersion.aspx?appName=smartTouch");
+			update.checkForUpdates();
+			SharedPreferences.Editor myEditor = mySharedPreferences.edit();
+			myEditor.putString("lastUpdateDate", curDateString);
+			myEditor.commit();
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		Log.i(TAG, "已经创建好菜单");
+		menu.add(10, 1, 1, "检查更新");
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		int id = item.getItemId();
+		Log.i(TAG, "已经选择菜单" + id);
+		switch (id) {
+			case 1:
+				update.setCheckUrl("http://111.198.57.26:8002/gis/android/appVersion.aspx?appName=smartTouch");
+				update.checkForUpdates();
+				break;
+			default:
+				break;
+		}
+		return super.onOptionsItemSelected(item);
+
 	}
 
 	@Override
 	public void onResume() {
 		boolean isEnabled = false;
 		super.onResume();
+	}
+
+	//辅助服务是否开启
+	private boolean isAccessbilityOpened(){
+		boolean isEnabled = false;
 		AccessibilityManager manager = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
 		List<AccessibilityServiceInfo> list = AccessibilityManagerCompat.getEnabledAccessibilityServiceList(manager,
 				AccessibilityServiceInfo.FEEDBACK_ALL_MASK);
@@ -97,11 +158,7 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 				break;
 			}
 		}
-		if (!isEnabled) {
-			AccessibilitySetting();
-		}else{
-			accessibilityService=MyAccessibilityService.getSharedInstance();
-		}
+		return isEnabled;
 	}
 
 	//开启辅助服务设置
@@ -140,19 +197,23 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 		Log.i(TAG,"onPreferenceChange+"+preference.getKey()+"*"+newValue);
-		if(preference.getKey().equals("started")) {
-			if (accessibilityService != null) {
-				if (newValue.equals(true)) {
-					accessibilityService.createFloatView();
-				} else {
-					accessibilityService.closeFloatView();
-				}
-			}else{
-				accessibilityService=MyAccessibilityService.getSharedInstance();
+		if(accessibilityService==null){
+			if(isAccessbilityOpened()) {
+				accessibilityService = MyAccessibilityService.getSharedInstance();
+			}else {
 				AccessibilitySetting();
 				return false;
 			}
-
+		}
+		if(preference.getKey().equals("started")) {
+			if(newValue.equals(true)){
+				accessibilityService.createFloatView();
+			}else{
+				accessibilityService.closeFloatView();
+			}
+		}else if (preference.getKey().equals("shape")){
+			Log.i(TAG, "改变形状");
+			accessibilityService.updateShape(newValue.toString());
 		}
 		return true;
 	}

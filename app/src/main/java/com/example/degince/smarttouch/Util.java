@@ -48,13 +48,7 @@ public class Util {
 		}
 	}
 
-	public static void openRecentApp(AccessibilityService service) {
-		if (VERSION.SDK_INT < 16) {
-			Toast.makeText(service, "Android 4.1及以上系统才支持此功能，请升级后重试", 1).show();
-		} else {
-			service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
-		}
-	}
+
 
 	public static void recentApps(AccessibilityService service) {
 		if (VERSION.SDK_INT < 16) {
@@ -124,23 +118,29 @@ public class Util {
 		return alpha;
 	}
 
-	public static int getColor(SharedPreferences sharedPreferences) {
-		String color = sharedPreferences.getString("color", "green");
-		Log.i(TAG, "颜色为" + color);
-		int colorInt = 0xff000000;
-		if (color.equals("black")) {
-			colorInt = 0xff000000;
-		} else if (color.equals("white")) {
-			colorInt = 0xffffffff;
-		} else if (color.equals("blue")) {
-			colorInt = 0xff6dcaec;
-		} else if (color.equals("green")) {
-			colorInt = 0xffb9e3d9;
-		} else if (color.equals("red")) {
-			colorInt = 0xffff7979;
-		} else if (color.equals("orange")) {
-			colorInt = 0xffffd060;
+	public static int getButtonBackground(SharedPreferences sharedPreferences){
+		String image=sharedPreferences.getString("shape","roundSquare");
+		Log.i(TAG,"背景图片为"+image);
+		int imageId=R.drawable.round_square;
+		if(image.equals("round")){
+			Log.i(TAG,"round"+image);
+			imageId=R.drawable.round;
+		}else if(image.equals("roundSquare")){
+			Log.i(TAG,"roundSquare"+image);
+			imageId=R.drawable.round_square;
 		}
-		return colorInt;
+		else if(image.equals("square")){
+			imageId=R.drawable.square;
+		}
+		else if(image.equals("heart")){
+			Log.i(TAG,"heart"+image);
+			imageId=R.drawable.heart;
+		}else if(image.equals("star")){
+			Log.i(TAG,"star"+image);
+			imageId=R.drawable.star;
+		}
+		return imageId;
 	}
+
+
 }

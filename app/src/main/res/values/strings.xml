@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">SmartTouch</string>
+    <string name="app_name">虚拟按键</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="accessibility_service_description">该服务为验证系统辅助功能的作用</string>
+    <string name="accessibility_service_description">开启辅助服务仅用于模拟按键功能，不会收集用户信息，请放心开启。</string>
     <string name="acc_service_name">系统辅助测试</string>
 
 </resources>

@@ -15,15 +15,15 @@
         android:layout="@layout/prefs_category_widget"
         android:title="显示">
 
-        <!--<com.example.degince.smarttouch.preference.MyListPreference-->
-            <!--android:defaultValue="green"-->
-            <!--android:dialogTitle="选择悬浮窗的背景色"-->
-            <!--android:entries="@array/drawColor"-->
-            <!--android:entryValues="@array/drawColor_value"-->
-            <!--android:key="color"-->
-            <!--android:layout="@layout/list_items"-->
-            <!--android:summary="绿"-->
-            <!--android:title="颜色"/>-->
+        <com.example.degince.smarttouch.preference.MyListPreference
+            android:defaultValue="round"
+            android:dialogTitle="选择悬浮窗的形状"
+            android:entries="@array/shape"
+            android:entryValues="@array/shape_value"
+            android:key="shape"
+            android:layout="@layout/list_items"
+            android:summary="椭方形"
+            android:title="形状"/>
 
         <com.example.degince.smarttouch.preference.MySeekBarPreference
             android:key="alpha"
@@ -103,15 +103,6 @@
             android:summary="返回键"
             android:title="双击"/>
 
-        <com.example.degince.smarttouch.preference.MyListPreference
-            android:defaultValue="nothing"
-            android:dialogTitle="长按触发的功能"
-            android:entries="@array/longClick"
-            android:entryValues="@array/longClick_value"
-            android:key="longClick"
-            android:layout="@layout/list_items"
-            android:summary="模拟HOME键"
-            android:title="长按"/>
     </PreferenceCategory>
 
 
@@ -133,8 +124,13 @@
             android:icon="@drawable/mail"
             android:key="mail"
             android:layout="@layout/list_items"
-            android:summary="247442249@163.com"
+            android:summary="deginch@163.com"
             android:title="发邮件">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="mailto:deginch@163.com?subject=smart touch">
+                <extra android:name="android.intent.extra.TEXT" android:value="【smartTouch 反馈】" />
+            </intent>
         </Preference>
 
     </PreferenceCategory>

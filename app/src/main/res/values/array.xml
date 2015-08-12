@@ -2,22 +2,20 @@
 <resources>
 
     <!-- 抽屉的颜色 -->
-    <string-array name="drawColor">
-        <item>黑</item>
-        <item>白</item>
-        <item>蓝</item>
-        <item>绿</item>
-        <item>红</item>
-        <item>橙</item>
+    <string-array name="shape">
+        <item>圆形</item>
+        <item>椭方形</item>
+        <item>方形</item>
+        <item>心形</item>
+        <item>星形</item>
     </string-array>
 
-    <string-array name="drawColor_value">
-        <item>black</item>
-        <item>white</item>
-        <item>blue</item>
-        <item>green</item>
-        <item>red</item>
-        <item>orange</item>
+    <string-array name="shape_value">
+        <item>round</item>
+        <item>roundSquare</item>
+        <item>square</item>
+        <item>heart</item>
+        <item>star</item>
     </string-array>
 
     <!-- 抽屉的文字颜色 -->

@@ -29,31 +29,43 @@ public class MyAccessibilityService extends AccessibilityService {
 	private String TAG = "MyAccessibilityService";
 	private static MyAccessibilityService sharedInstance;
 	private MyFloatingView myFloatingView;
-	private boolean isFLoatViewCreated=false;
-	public MyAccessibilityService(){
+	private boolean isFLoatViewCreated = false;
+
+	public MyAccessibilityService() {
 	}
 
 	@Override
-	public void onCreate(){
-		myFloatingView= new MyFloatingView(this,this);
+	public void onCreate() {
+		myFloatingView = new MyFloatingView(this, this);
 	}
 
-	public void createFloatView(){
+	public void createFloatView() {
+		Log.i(TAG,"创建悬浮窗");
 		myFloatingView.createFloatView();
-		isFLoatViewCreated=true;
+		isFLoatViewCreated = true;
 	}
 
-	public void closeFloatView(){
-		myFloatingView.closeFloatView();
-		isFLoatViewCreated=false;
+	public void closeFloatView() {
+		Log.i(TAG,"关闭悬浮窗");
+		if(myFloatingView!=null) {
+			myFloatingView.closeFloatView();
+		}
+		isFLoatViewCreated = false;
 	}
 
-	public boolean isFLoatViewCreated(){
-		return  this.isFLoatViewCreated;
+	public void updateShape(String shape){
+		if(myFloatingView!=null) {
+			myFloatingView.updateShape(shape);
+		}
 	}
+
+	public boolean isFLoatViewCreated() {
+		return this.isFLoatViewCreated;
+	}
+
 	//重载悬浮窗
-	public void updateButton(){
-		Log.i(TAG,"重新刷新按钮");
+	public void updateButton() {
+		Log.i(TAG, "重新刷新悬浮窗");
 		myFloatingView.updateFloatButton();
 	}
 
@@ -61,26 +73,24 @@ public class MyAccessibilityService extends AccessibilityService {
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		Log.i(TAG, "service onDestroy");
-//		if (mFloatLayout != null) {
-//			//移除悬浮窗口
-//			mWindowManager.removeView(mFloatLayout);
-//		}
+		this.closeFloatView();
 		super.onDestroy();
 	}
 
 	@Override
 	public void onAccessibilityEvent(AccessibilityEvent event) {
-
+		Log.i(TAG, "检测到事件");
 	}
 
 	@Override
 	protected void onServiceConnected() {
-		sharedInstance=this;
+		sharedInstance = this;
 		Log.i(TAG, "连接辅助服务");
 	}
 
 	@Override
-	public void onInterrupt() {}
+	public void onInterrupt() {
+	}
 
 	@Override
 	public boolean onUnbind(Intent intent) {
