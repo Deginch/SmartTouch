@@ -4,6 +4,9 @@ import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.app.UiAutomation;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Binder;
@@ -22,6 +25,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.degince.smarttouch.lockscreen.LockScreenAdmin;
+
 import java.util.List;
 
 public class MyAccessibilityService extends AccessibilityService {
@@ -30,13 +35,13 @@ public class MyAccessibilityService extends AccessibilityService {
 	private static MyAccessibilityService sharedInstance;
 	private MyFloatingView myFloatingView;
 	private boolean isFLoatViewCreated = false;
-
 	public MyAccessibilityService() {
 	}
 
 	@Override
 	public void onCreate() {
-		myFloatingView = new MyFloatingView(this, this);
+		ComponentName componentName = new ComponentName(this, LockScreenAdmin.class);
+		myFloatingView = new MyFloatingView(this, this,componentName);
 	}
 
 	public void createFloatView() {

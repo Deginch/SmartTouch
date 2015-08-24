@@ -2,6 +2,7 @@ package com.example.degince.smarttouch;
 
 import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,16 +37,20 @@ public class MyFloatingView extends LinearLayout {
 	private GestureDetector gestureDetector;
 	private static SharedPreferences sharedPreferences;
 	private String preferencesName = "com.example.degince.smarttouch_preferences";
+	private ComponentName componentName;
 
-	public MyFloatingView(Context context, AccessibilityService accessibilityService) {
+	public MyFloatingView(Context context, AccessibilityService accessibilityService,ComponentName componentName) {
 		super(context);
 		this.context = context;
 		this.accessibilityService = accessibilityService;
+		this.componentName=componentName;
 		sharedPreferences = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
 	}
 
 
 	public void createFloatView() {
+		//在创建之前先清除已经存在的图标
+		closeFloatView();
 		wmParams = new WindowManager.LayoutParams();
 		//获取的是WindowManagerImpl.CompatModeWrapper
 		mWindowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
@@ -123,7 +128,7 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	public void closeFloatView(){
-		if(mFloatLayout!=null) {
+		if(mFloatLayout!=null&&mWindowManager!=null) {
 			mWindowManager.removeView(mFloatLayout);
 			mFLoatButton = null;
 			mFloatLayout = null;
@@ -203,6 +208,7 @@ public class MyFloatingView extends LinearLayout {
 
 	private void singleClick() {
 		doGestureOperation(sharedPreferences.getString("singleClick", "nothing"));
+//		Util.lockScreen(context);
 	}
 
 	private void doubleClick() {
@@ -224,6 +230,9 @@ public class MyFloatingView extends LinearLayout {
 			Util.virtualHome(context);
 		} else if (gesture.equals("camera")) {
 			Util.openCamera(context);
+		}else if (gesture.equals("lock")){
+			mFLoatButton.setAlpha(Util.UnClickAlpha);
+			Util.lockScreen(context,componentName);
 		}
 
 	}
@@ -233,6 +242,9 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onSingleTapUp(MotionEvent e) {
 			Log.i(TAG, "onSingleTapUp-----" + getActionName(e.getAction()));
+			if(!Util.isDoubleClickable(sharedPreferences)){
+				singleClick();
+			}
 			return false;
 		}
 
@@ -310,7 +322,9 @@ public class MyFloatingView extends LinearLayout {
 		public boolean onSingleTapConfirmed(MotionEvent e) {
 			Log.i(TAG, "onSingleTapConfirmed-----" + getActionName(e.getAction()));
 			//开启了双击功能,单击需要更多时间
-			singleClick();
+			if(Util.isDoubleClickable(sharedPreferences)){
+				singleClick();
+			}
 			return false;
 		}
 	}

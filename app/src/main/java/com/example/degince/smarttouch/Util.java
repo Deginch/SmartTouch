@@ -4,6 +4,8 @@ import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Service;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -96,8 +98,6 @@ public class Util {
 		mContext.startActivity(intentCamera);
 	}
 
-	public static void lockScreen(Context context){
-	}
 
 	//震动
 	public static void vibrate(long time,Context context) {
@@ -118,8 +118,16 @@ public class Util {
 		return alpha;
 	}
 
+	public static boolean isDoubleClickable(SharedPreferences sharedPreferences){
+		if(sharedPreferences.getString("doubleClick", "nothing").equals("nothing")){
+			return false;
+		}else{
+			return true;
+		}
+	}
+
 	public static int getButtonBackground(SharedPreferences sharedPreferences){
-		String image=sharedPreferences.getString("shape","roundSquare");
+		String image=sharedPreferences.getString("shape", "roundSquare");
 		Log.i(TAG,"背景图片为"+image);
 		int imageId=R.drawable.round_square;
 		if(image.equals("round")){
@@ -142,5 +150,24 @@ public class Util {
 		return imageId;
 	}
 
+	//锁屏
+	public static void lockScreen(Context context,ComponentName componentName){
+		DevicePolicyManager policyManager= (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+		boolean active = policyManager.isAdminActive(componentName);
+		if (active) {
+			Log.i(TAG, "锁屏成功 ");
+			policyManager.lockNow();//直接锁屏
+		}else{
+			Log.i(TAG, "没有锁屏权限 ");
+			Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+			intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			//权限列表
+			intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
 
+			//描述(additional explanation)
+			intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "------ 第一次锁屏时需要激活设备管理器，之后可随意使用，无需再次激活 ------");
+			context.startActivity(intent);
+		}
+
+	}
 }

@@ -34,6 +34,7 @@
         <item>调出后台任务</item>
         <item>Home键</item>
         <item>模拟返回键</item>
+        <item>锁屏</item>
         <item>无功能</item>
     </string-array>
 
@@ -41,6 +42,7 @@
         <item>recents</item>
         <item>home</item>
         <item>back</item>
+        <item>lock</item>
         <item>nothing</item>
     </string-array>
 
@@ -50,6 +52,7 @@
         <item>调出后台任务</item>
         <item>Home键</item>
         <item>模拟返回键</item>
+        <item>锁屏</item>
         <item>无功能</item>
     </string-array>
 
@@ -58,6 +61,7 @@
         <item>recents</item>
         <item>home</item>
         <item>back</item>
+        <item>lock</item>
         <item>nothing</item>
     </string-array>
 
@@ -92,6 +96,7 @@
         <item>调出后台任务</item>
         <item>模拟返回键</item>
         <item>模拟HOME键</item>
+        <item>锁屏</item>
     </string-array>
 
     <string-array name="singleClick_value">
@@ -99,6 +104,7 @@
         <item>recents</item>
         <item>back</item>
         <item>home</item>
+        <item>lock</item>
     </string-array>
 
     <string-array name="doubleClick">
@@ -106,6 +112,7 @@
         <item>调出后台任务</item>
         <item>模拟HOME键</item>
         <item>打开相机</item>
+        <item>锁屏</item>
         <item>无功能</item>
     </string-array>
 
@@ -114,6 +121,7 @@
         <item>recents</item>
         <item>home</item>
         <item>camera</item>
+        <item>lock</item>
         <item>nothing</item>
     </string-array>
 

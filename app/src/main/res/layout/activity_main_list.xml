@@ -7,8 +7,6 @@
 
     <!-- 和源码一样，用默认的id定义。这样我们可以任意修改布局，什么滚动条、分割线都行。随意发挥！ -->
 
-
-
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"

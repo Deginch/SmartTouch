@@ -3,13 +3,12 @@ package com.example.degince.smarttouch;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.admin.DevicePolicyManager;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.IBinder;
 import android.preference.PreferenceActivity;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
@@ -18,31 +17,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.List;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 
-import android.accessibilityservice.AccessibilityServiceInfo;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
-import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceActivity;
-import android.support.v4.view.accessibility.AccessibilityManagerCompat;
-import android.view.accessibility.AccessibilityManager;
-import android.widget.LinearLayout;
+import android.widget.Button;
 import android.widget.SeekBar;
 
+import com.example.degince.smarttouch.lockscreen.LockScreenAdmin;
 import com.example.degince.smarttouch.preference.MyListPreference;
 import com.example.degince.smarttouch.preference.MySeekBarPreference;
 import com.example.degince.smarttouch.version.UpdateChecker;
@@ -65,17 +53,17 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 		addPreferencesFromResource(R.xml.main_preference);
 		sharedPreferences = getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
 		//获取辅助服务
-		accessibilityService=MyAccessibilityService.getSharedInstance();
+		accessibilityService = MyAccessibilityService.getSharedInstance();
 
-		shape=(MyListPreference)findPreference("shape");
+		shape = (MyListPreference) findPreference("shape");
 		shape.setOnPreferenceChangeListener(this);
 		shape.setDefaultValue(Util.getButtonBackground(sharedPreferences));
 
-		started=(SwitchPreference)findPreference("started");
+		started = (SwitchPreference) findPreference("started");
 		started.setOnPreferenceChangeListener(this);
-		if(accessibilityService!=null) {
+		if (accessibilityService != null) {
 			started.setChecked(accessibilityService.isFLoatViewCreated());
-		}else{
+		} else {
 			started.setChecked(false);
 		}
 
@@ -98,14 +86,14 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 
 
 	//自动检查更新
-	private void remindUpdateApp(){
-		SimpleDateFormat formatter = new SimpleDateFormat ("yyyyMMdd");
+	private void remindUpdateApp() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
 		Date curDate = new Date(System.currentTimeMillis());//获取当前时间
 		String curDateString = formatter.format(curDate);
 		SharedPreferences mySharedPreferences = getSharedPreferences("setting",
 				Activity.MODE_PRIVATE);
-		String lastUpdateString=mySharedPreferences.getString("lastUpdateDate", "20151111");
-		if(!lastUpdateString.equals(curDateString)){
+		String lastUpdateString = mySharedPreferences.getString("lastUpdateDate", "20151111");
+		if (!lastUpdateString.equals(curDateString)) {
 			update.setCheckUrl("http://111.198.57.26:8002/gis/android/appVersion.aspx?appName=smartTouch");
 			update.checkForUpdates();
 			SharedPreferences.Editor myEditor = mySharedPreferences.edit();
@@ -144,7 +132,7 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 	}
 
 	//辅助服务是否开启
-	private boolean isAccessbilityOpened(){
+	private boolean isAccessbilityOpened() {
 		boolean isEnabled = false;
 		AccessibilityManager manager = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
 		List<AccessibilityServiceInfo> list = AccessibilityManagerCompat.getEnabledAccessibilityServiceList(manager,
@@ -196,22 +184,22 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
-		Log.i(TAG,"onPreferenceChange+"+preference.getKey()+"*"+newValue);
-		if(accessibilityService==null){
-			if(isAccessbilityOpened()) {
+		Log.i(TAG, "onPreferenceChange+" + preference.getKey() + "*" + newValue);
+		if (accessibilityService == null) {
+			if (isAccessbilityOpened()) {
 				accessibilityService = MyAccessibilityService.getSharedInstance();
-			}else {
+			} else {
 				AccessibilitySetting();
 				return false;
 			}
 		}
-		if(preference.getKey().equals("started")) {
-			if(newValue.equals(true)){
+		if (preference.getKey().equals("started")) {
+			if (newValue.equals(true)) {
 				accessibilityService.createFloatView();
-			}else{
+			} else {
 				accessibilityService.closeFloatView();
 			}
-		}else if (preference.getKey().equals("shape")){
+		} else if (preference.getKey().equals("shape")) {
 			Log.i(TAG, "改变形状");
 			accessibilityService.updateShape(newValue.toString());
 		}
@@ -220,28 +208,28 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 
 	@Override
 	public void onStopTrackingTouch(String key, SeekBar seekBar) {
-		Log.i(TAG,"onStopTrackingTouch");
-		if(accessibilityService!=null) {
+		Log.i(TAG, "onStopTrackingTouch");
+		if (accessibilityService != null) {
 			accessibilityService.updateButton();
-		}else {
-			accessibilityService=MyAccessibilityService.getSharedInstance();
+		} else {
+			accessibilityService = MyAccessibilityService.getSharedInstance();
 		}
 
 	}
 
 	@Override
 	public void onStartTrackingTouch(String key, SeekBar seekBar) {
-		Log.i(TAG,"onStartTrackingTouch");
+		Log.i(TAG, "onStartTrackingTouch");
 
 	}
 
 	@Override
 	public void onProgressChanged(String key, SeekBar seekBar, int progress, boolean fromUser) {
-		Log.i(TAG,"onProgressChanged");
-		if(accessibilityService!=null) {
+		Log.i(TAG, "onProgressChanged");
+		if (accessibilityService != null) {
 			accessibilityService.updateButton();
-		}else {
-			accessibilityService=MyAccessibilityService.getSharedInstance();
+		} else {
+			accessibilityService = MyAccessibilityService.getSharedInstance();
 		}
 
 	}
