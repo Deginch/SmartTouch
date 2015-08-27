@@ -2,7 +2,7 @@
 
     <PreferenceCategory
         android:layout="@layout/prefs_category_widget"
-        android:title="启用">
+        android:title="启用(需要开启辅助服务和打开悬浮窗权限)">
         <SwitchPreference
             android:background="@color/barColor"
             android:defaultValue="true"
@@ -41,6 +41,20 @@
     <PreferenceCategory
         android:layout="@layout/prefs_category_widget"
         android:title="功能">
+
+        <SwitchPreference
+            android:background="@color/barColor"
+            android:defaultValue="true"
+            android:key="autoMove"
+            android:layout="@layout/list_items"
+            android:title="自动移动至边缘"/>
+
+        <SwitchPreference
+            android:background="@color/barColor"
+            android:defaultValue="true"
+            android:key="vibrate"
+            android:layout="@layout/list_items"
+            android:title="震动"/>
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="nothing"

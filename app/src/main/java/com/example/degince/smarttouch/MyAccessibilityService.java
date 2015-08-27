@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -42,12 +43,16 @@ public class MyAccessibilityService extends AccessibilityService {
 	public void onCreate() {
 		ComponentName componentName = new ComponentName(this, LockScreenAdmin.class);
 		myFloatingView = new MyFloatingView(this, this,componentName);
+
+		createFloatView();
 	}
 
 	public void createFloatView() {
-		Log.i(TAG,"创建悬浮窗");
-		myFloatingView.createFloatView();
-		isFLoatViewCreated = true;
+		if(!isFLoatViewCreated) {
+			Log.i(TAG, "创建悬浮窗");
+			myFloatingView.createFloatView();
+			isFLoatViewCreated = true;
+		}
 	}
 
 	public void closeFloatView() {
@@ -84,9 +89,13 @@ public class MyAccessibilityService extends AccessibilityService {
 
 	@Override
 	public void onAccessibilityEvent(AccessibilityEvent event) {
-		Log.i(TAG, "检测到事件");
+		Log.i(TAG, "检测到事件,getEventType="+AccessibilityEvent.eventTypeToString(event.getEventType()));
+		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		boolean isOpen=imm.isActive();
+		if(isOpen){
+			Log.i(TAG,"输入法打开");
+		}
 	}
-
 	@Override
 	protected void onServiceConnected() {
 		sharedInstance = this;

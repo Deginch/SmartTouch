@@ -7,8 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -38,25 +44,38 @@ public class MyFloatingView extends LinearLayout {
 	private static SharedPreferences sharedPreferences;
 	private String preferencesName = "com.example.degince.smarttouch_preferences";
 	private ComponentName componentName;
-
-	public MyFloatingView(Context context, AccessibilityService accessibilityService,ComponentName componentName) {
+	private Handler mMainHandler, mAutoMovingHandler;
+	private final int UpdateButtonLocation = 1;
+	private final int movingSleepTime=3,movingX=5;
+	public MyFloatingView(Context context, AccessibilityService accessibilityService, ComponentName componentName) {
 		super(context);
 		this.context = context;
 		this.accessibilityService = accessibilityService;
-		this.componentName=componentName;
+		this.componentName = componentName;
 		sharedPreferences = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
+		handlerInit();
 	}
 
 
 	public void createFloatView() {
 		//在创建之前先清除已经存在的图标
 		closeFloatView();
+		//创建自动贴墙的子线程
+		new AutoMovingThread().start();
+
 		wmParams = new WindowManager.LayoutParams();
 		//获取的是WindowManagerImpl.CompatModeWrapper
 		mWindowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
-		Log.i(TAG, "mWindowManager--->" + mWindowManager);
+		Display display = mWindowManager.getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		final int screenWidth = size.x;
+		final int screenHeight = size.y;
+		Log.i(TAG, "mWindowManager--->" + mWindowManager + ",screenWidth=" + screenWidth);
+
 		//设置window type
-		wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+//		wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+		wmParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
 		//设置图片格式，效果为背景透明
 //		wmParams.format = PixelFormat.RGB_565;
 		wmParams.format = PixelFormat.RGBA_8888;
@@ -67,8 +86,8 @@ public class MyFloatingView extends LinearLayout {
 		//调整悬浮窗显示的停靠位置为左侧置顶
 		wmParams.gravity = Gravity.LEFT | Gravity.TOP;
 		// 以屏幕左上角为原点，设置x、y初始值，相对于gravity
-		wmParams.x = 300;
-		wmParams.y = 800;
+		wmParams.x = screenWidth / 2;
+		wmParams.y = screenHeight / 2;
 
 		//设置悬浮窗口长宽数据
 		wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -102,24 +121,44 @@ public class MyFloatingView extends LinearLayout {
 					case MotionEvent.ACTION_UP:
 						Log.i(TAG, "TouchListener ACTION_UP");
 						mFLoatButton.setAlpha(Util.UnClickAlpha);
-						CanMoving = false;
+						if (CanMoving) {
+							CanMoving = false;
+							if (Util.isAutoMove(sharedPreferences)) {
+								//给子线程发送消息自动将按钮移动置屏幕边缘
+								if (mAutoMovingHandler != null) {
+									int destinationX;
+									if(wmParams.x>screenWidth/2){
+										destinationX=screenWidth-mFLoatButton.getMeasuredWidth()/2;
+									}else{
+										destinationX=0-mFLoatButton.getMeasuredWidth()/2;
+									}
+									//发送消息给子线程
+									Message childMsg = mAutoMovingHandler.obtainMessage();
+									Bundle bundle=new Bundle();
+									bundle.putInt("destinationX",destinationX);
+									bundle.putInt("currentX",wmParams.x);
+									childMsg.setData(bundle);
+									childMsg.what=UpdateButtonLocation;
+									mAutoMovingHandler.sendMessage(childMsg);
+									Log.i(TAG, "Send a message to the child thread - ");
+								}
+							}
+						}
 						break;
 					case MotionEvent.ACTION_DOWN:
-						mFLoatButton.setAlpha(Util.ClickAlpha);
 						break;
 					case MotionEvent.ACTION_MOVE:
 						if (CanMoving) {
 							//getRawX是触摸位置相对于屏幕的坐标，getX是相对于按钮的坐标
 							wmParams.x = (int) event.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
-							//减25为状态栏的高度
 							wmParams.y = (int) event.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
 							//刷新
 							Log.i(TAG, "move");
 							mWindowManager.updateViewLayout(mFloatLayout, wmParams);
+							Log.i(TAG, "x=" + wmParams.x + ",y=" + wmParams.y);
 						}
 						break;
 				}
-
 				// 一定要返回true，不然获取不到完整的事件
 				return true;
 			}
@@ -127,16 +166,107 @@ public class MyFloatingView extends LinearLayout {
 		updateFloatButton();
 	}
 
-	public void closeFloatView(){
-		if(mFloatLayout!=null&&mWindowManager!=null) {
-			mWindowManager.removeView(mFloatLayout);
-			mFLoatButton = null;
-			mFloatLayout = null;
+
+	private void handlerInit() {
+		//控制页面更新
+		mMainHandler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+					case UpdateButtonLocation: {
+						Bundle bundle = msg.getData();
+						int x = bundle.getInt("buttonX", 0);
+						if(wmParams!=null&&mFloatLayout!=null) {
+							wmParams.x = x;
+							mWindowManager.updateViewLayout(mFloatLayout, wmParams);
+						}
+						break;
+					}
+					default:
+						break;
+				}
+			}
+		};
+	}
+
+	class AutoMovingThread extends Thread {
+		@Override
+		public void run() {
+			Looper.prepare();
+			mAutoMovingHandler = new Handler() {
+				@Override
+				public void handleMessage(Message msg) {
+					switch(msg.what){
+						case UpdateButtonLocation:{
+							Log.i(TAG,"开启自动移动线程");
+							//初始化发送handler
+							Bundle sendBundle=new Bundle();
+
+							Bundle bundle=msg.getData();
+							int destinationX=bundle.getInt("destinationX", 0);
+							int currentX=bundle.getInt("currentX",0);
+							Log.i(TAG,"destinationX="+destinationX+",currentX="+currentX);
+							if(currentX<destinationX){
+								while((currentX+=movingX)<destinationX){
+									try {
+										sleep(movingSleepTime);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
+									Log.i(TAG,"currentX="+currentX);
+									Message message=new Message();
+									message.what=UpdateButtonLocation;
+									sendBundle.putInt("buttonX", currentX);
+									message.setData(sendBundle);
+									mMainHandler.sendMessage(message);
+
+								}
+							}else{
+								while((currentX-=movingX)>destinationX){
+									try {
+										sleep(movingSleepTime);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
+									Log.i(TAG,"currentX="+currentX);
+									Message message=new Message();
+									message.what=UpdateButtonLocation;
+									sendBundle.putInt("buttonX",currentX);
+									message.setData(sendBundle);
+									mMainHandler.sendMessage(message);
+								}
+							}
+							currentX=destinationX;
+							Message message=new Message();
+							message.what=UpdateButtonLocation;
+							sendBundle.putInt("buttonX",currentX);
+							message.setData(sendBundle);
+							mMainHandler.sendMessage(message);
+							break;
+						}
+						default:
+							break;
+					}
+				}
+			};
+			//启动子线程消息循环队列
+			Looper.loop();
 		}
 	}
 
-	public void updateFloatButton(){
-		if(mFLoatButton!=null) {
+	public void closeFloatView() {
+		if (mFloatLayout != null && mWindowManager != null) {
+			mWindowManager.removeView(mFloatLayout);
+			mFLoatButton = null;
+			mFloatLayout = null;
+			if(mAutoMovingHandler!=null){
+				mAutoMovingHandler.getLooper().quit();
+			}
+		}
+	}
+
+	public void updateFloatButton() {
+		if (mFLoatButton != null) {
 			ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(5, 5);
 			Log.i(TAG, "重新刷新按钮");
 //		//刷新透明度
@@ -147,25 +277,23 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	//更新图标
-	public void updateShape(String shape){
-		int imageId=R.drawable.round_square;
-		if(shape.equals("round")){
-			imageId=R.drawable.round;
-		}else if(shape.equals("roundSquare")){
-			imageId=R.drawable.round_square;
-		}
-		else if(shape.equals("square")){
-			imageId=R.drawable.square;
-		}
-		else if(shape.equals("heart")){
-			imageId=R.drawable.heart;
-		}else if(shape.equals("star")){
-			imageId=R.drawable.star;
+	public void updateShape(String shape) {
+		int imageId = R.drawable.round_square;
+		if (shape.equals("round")) {
+			imageId = R.drawable.round;
+		} else if (shape.equals("roundSquare")) {
+			imageId = R.drawable.round_square;
+		} else if (shape.equals("square")) {
+			imageId = R.drawable.square;
+		} else if (shape.equals("heart")) {
+			imageId = R.drawable.heart;
+		} else if (shape.equals("star")) {
+			imageId = R.drawable.star;
 		}
 		try {
 			mFLoatButton.setBackgroundResource(imageId);
-		}catch (Exception e){
-			Log.i(TAG,"更新形状失败+"+e.getMessage());
+		} catch (Exception e) {
+			Log.i(TAG, "更新形状失败+" + e.getMessage());
 		}
 	}
 
@@ -207,6 +335,7 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	private void singleClick() {
+//		Util.getRunningActivityName(context);
 		doGestureOperation(sharedPreferences.getString("singleClick", "nothing"));
 //		Util.lockScreen(context);
 	}
@@ -220,6 +349,9 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	private void doGestureOperation(String gesture) {
+		if (Util.isVibrate(sharedPreferences)) {
+			Util.vibrate(1000, context);
+		}
 		if (gesture.equals("openBar")) {
 			Util.openStatusBar(context);
 		} else if (gesture.equals("recents")) {
@@ -230,9 +362,13 @@ public class MyFloatingView extends LinearLayout {
 			Util.virtualHome(context);
 		} else if (gesture.equals("camera")) {
 			Util.openCamera(context);
-		}else if (gesture.equals("lock")){
-			mFLoatButton.setAlpha(Util.UnClickAlpha);
-			Util.lockScreen(context,componentName);
+		} else if (gesture.equals("lock")) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Util.lockScreen(context, componentName);
 		}
 
 	}
@@ -242,7 +378,7 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onSingleTapUp(MotionEvent e) {
 			Log.i(TAG, "onSingleTapUp-----" + getActionName(e.getAction()));
-			if(!Util.isDoubleClickable(sharedPreferences)){
+			if (!Util.isDoubleClickable(sharedPreferences)) {
 				singleClick();
 			}
 			return false;
@@ -251,15 +387,15 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public void onLongPress(MotionEvent e) {
 			Log.i(TAG, "onLongPress-----" + getActionName(e.getAction()));
-			Util.vibrate(1500,context);
+			Util.vibrate(2000, context);
 			CanMoving = true;
 		}
 
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-			Log.i(TAG,
-					"onScroll-----" + getActionName(e2.getAction()) + ",(" + e1.getX() + "," + e1.getY() + ") ,("
-							+ e2.getX() + "," + e2.getY() + ")");
+//			Log.i(TAG,
+//					"onScroll-----" + getActionName(e2.getAction()) + ",(" + e1.getX() + "," + e1.getY() + ") ,("
+//							+ e2.getX() + "," + e2.getY() + ")");
 			return false;
 		}
 
@@ -302,12 +438,15 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onDown(MotionEvent e) {
 			Log.i(TAG, "onDown-----" + getActionName(e.getAction()));
+			mFLoatButton.setAlpha(Util.ClickAlpha);
 			return false;
 		}
 
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
 			Log.i(TAG, "onDoubleTap-----" + getActionName(e.getAction()));
+			//连续两次设置透明度，是为了解决双击锁屏后按钮显示为黑色的bug
+			mFLoatButton.setAlpha(Util.UnClickAlpha);
 			doubleClick();
 			return false;
 		}
@@ -315,6 +454,7 @@ public class MyFloatingView extends LinearLayout {
 		@Override
 		public boolean onDoubleTapEvent(MotionEvent e) {
 			Log.i(TAG, "onDoubleTapEvent-----" + getActionName(e.getAction()));
+			mFLoatButton.setAlpha(Util.UnClickAlpha);
 			return false;
 		}
 
@@ -322,7 +462,7 @@ public class MyFloatingView extends LinearLayout {
 		public boolean onSingleTapConfirmed(MotionEvent e) {
 			Log.i(TAG, "onSingleTapConfirmed-----" + getActionName(e.getAction()));
 			//开启了双击功能,单击需要更多时间
-			if(Util.isDoubleClickable(sharedPreferences)){
+			if (Util.isDoubleClickable(sharedPreferences)) {
 				singleClick();
 			}
 			return false;

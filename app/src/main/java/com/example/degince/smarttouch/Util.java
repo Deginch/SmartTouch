@@ -32,6 +32,8 @@ public class Util {
 	public static float UnClickAlpha =0.1f;
 	public static float ClickAlpha =0.7f;
 	private static String TAG="Util";
+
+
 	public static void virtualHome(Context mContext) {
 		// 模拟HOME键
 		Intent i = new Intent(Intent.ACTION_MAIN);
@@ -84,11 +86,21 @@ public class Util {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static String getRunningActivityName(Context mContext) {
+	public static void getRunningActivityName(Context mContext) {
 		ActivityManager activityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-		String runningActivity = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-		System.out.println("running Activity = " + runningActivity);
-		return runningActivity;
+
+		if (VERSION.SDK_INT < 21) {
+			Toast.makeText(mContext, "Android 21及以上系统才支持此功能，请升级后重试", 1).show();
+		} else {
+			try {
+				for(int i=0;i<activityManager.getRunningAppProcesses().size();i++){
+					Log.i(TAG,i+"="+activityManager.getRunningAppProcesses().get(i).processName);
+				}
+			}catch (Exception e){
+				Log.i(TAG,e.toString());
+			}
+
+		}
 	}
 
 	public static void openCamera(Context mContext) {
@@ -156,6 +168,7 @@ public class Util {
 		boolean active = policyManager.isAdminActive(componentName);
 		if (active) {
 			Log.i(TAG, "锁屏成功 ");
+			Util.vibrate(1000, context);
 			policyManager.lockNow();//直接锁屏
 		}else{
 			Log.i(TAG, "没有锁屏权限 ");
@@ -169,5 +182,15 @@ public class Util {
 			context.startActivity(intent);
 		}
 
+	}
+
+	//操作是否震动
+	public static boolean isVibrate(SharedPreferences sharedPreferences){
+		return sharedPreferences.getBoolean("vibrate",true);
+	}
+
+	//操作是否震动
+	public static boolean isAutoMove(SharedPreferences sharedPreferences){
+		return sharedPreferences.getBoolean("autoMove",true);
 	}
 }

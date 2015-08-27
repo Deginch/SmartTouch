@@ -61,11 +61,6 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 
 		started = (SwitchPreference) findPreference("started");
 		started.setOnPreferenceChangeListener(this);
-		if (accessibilityService != null) {
-			started.setChecked(accessibilityService.isFLoatViewCreated());
-		} else {
-			started.setChecked(false);
-		}
 
 
 		alphaSb = (MySeekBarPreference) findPreference("alpha");// 找到preference
@@ -99,6 +94,7 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 			SharedPreferences.Editor myEditor = mySharedPreferences.edit();
 			myEditor.putString("lastUpdateDate", curDateString);
 			myEditor.commit();
+
 		}
 	}
 
@@ -129,6 +125,15 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 	public void onResume() {
 		boolean isEnabled = false;
 		super.onResume();
+		if (accessibilityService != null) {
+		} else {
+			accessibilityService = MyAccessibilityService.getSharedInstance();
+			if(accessibilityService!=null){
+				started.setChecked(accessibilityService.isFLoatViewCreated());
+			}else {
+				started.setChecked(false);
+			}
+		}
 	}
 
 	//辅助服务是否开启

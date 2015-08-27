@@ -69,12 +69,14 @@
     <string-array name="swipeLeft">
         <item>调出后台任务</item>
         <item>模拟返回键</item>
+        <item>呼出通知栏</item>
         <item>无功能</item>
     </string-array>
 
     <string-array name="swipeLeft_value">
         <item>recents</item>
         <item>back</item>
+        <item>openBar</item>
         <item>nothing</item>
     </string-array>
 
@@ -82,12 +84,14 @@
     <string-array name="swipeRight">
         <item>调出后台任务</item>
         <item>模拟返回键</item>
+        <item>呼出通知栏</item>
         <item>无功能</item>
     </string-array>
 
     <string-array name="swipeRight_value">
         <item>recents</item>
         <item>back</item>
+        <item>openBar</item>
         <item>nothing</item>
     </string-array>
 
