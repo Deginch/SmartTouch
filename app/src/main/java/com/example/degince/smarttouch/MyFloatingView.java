@@ -46,7 +46,7 @@ public class MyFloatingView extends LinearLayout {
 	private ComponentName componentName;
 	private Handler mMainHandler, mAutoMovingHandler;
 	private final int UpdateButtonLocation = 1;
-	private final int movingSleepTime=3,movingX=5;
+	private final int movingSleepTime=2,movingX=2;
 	public MyFloatingView(Context context, AccessibilityService accessibilityService, ComponentName componentName) {
 		super(context);
 		this.context = context;
@@ -120,6 +120,7 @@ public class MyFloatingView extends LinearLayout {
 				switch (event.getAction()) {
 					case MotionEvent.ACTION_UP:
 						Log.i(TAG, "TouchListener ACTION_UP");
+						//手势抬起时判断是否需要自动移动至边缘处
 						mFLoatButton.setAlpha(Util.UnClickAlpha);
 						if (CanMoving) {
 							CanMoving = false;
@@ -132,7 +133,7 @@ public class MyFloatingView extends LinearLayout {
 									}else{
 										destinationX=0-mFLoatButton.getMeasuredWidth()/2;
 									}
-									//发送消息给子线程
+									//将目的地和当前位置发送给自动移动位置线程
 									Message childMsg = mAutoMovingHandler.obtainMessage();
 									Bundle bundle=new Bundle();
 									bundle.putInt("destinationX",destinationX);
@@ -146,21 +147,35 @@ public class MyFloatingView extends LinearLayout {
 						}
 						break;
 					case MotionEvent.ACTION_DOWN:
+						//如果不是长按移动的话，则单击可移动
+						if(!Util.isLongPressMoving(sharedPreferences)){
+							CanMoving=true;
+						}
 						break;
 					case MotionEvent.ACTION_MOVE:
-						if (CanMoving) {
+						if (CanMoving&&Util.isLongPressMoving(sharedPreferences)) {
 							//getRawX是触摸位置相对于屏幕的坐标，getX是相对于按钮的坐标
-							wmParams.x = (int) event.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
-							wmParams.y = (int) event.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
-							//刷新
-							Log.i(TAG, "move");
-							mWindowManager.updateViewLayout(mFloatLayout, wmParams);
-							Log.i(TAG, "x=" + wmParams.x + ",y=" + wmParams.y);
+							//如果触摸点位置在按钮外面，则更新按钮位置
+//							if(Math.abs(wmParams.x-event.getRawX())>mFLoatButton.getMeasuredWidth()/4&&Math.abs(wmParams.y-event.getRawY())>mFLoatButton.getMeasuredHeight()/4) {
+								wmParams.x = (int) event.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
+								wmParams.y = (int) event.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
+								//刷新
+								Log.i(TAG, "move");
+								mWindowManager.updateViewLayout(mFloatLayout, wmParams);
+								Log.i(TAG, "x=" + wmParams.x + ",y=" + wmParams.y);
+//							}
 						}
 						break;
 				}
 				// 一定要返回true，不然获取不到完整的事件
 				return true;
+			}
+		});
+		mFLoatButton.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				Log.i(TAG,"LONG CLICK");
+				return false;
 			}
 		});
 		updateFloatButton();
@@ -176,6 +191,7 @@ public class MyFloatingView extends LinearLayout {
 					case UpdateButtonLocation: {
 						Bundle bundle = msg.getData();
 						int x = bundle.getInt("buttonX", 0);
+						//收到子线程发来的位置信息后则开始更新位置。
 						if(wmParams!=null&&mFloatLayout!=null) {
 							wmParams.x = x;
 							mWindowManager.updateViewLayout(mFloatLayout, wmParams);
@@ -205,7 +221,6 @@ public class MyFloatingView extends LinearLayout {
 							Bundle bundle=msg.getData();
 							int destinationX=bundle.getInt("destinationX", 0);
 							int currentX=bundle.getInt("currentX",0);
-							Log.i(TAG,"destinationX="+destinationX+",currentX="+currentX);
 							if(currentX<destinationX){
 								while((currentX+=movingX)<destinationX){
 									try {
@@ -213,7 +228,6 @@ public class MyFloatingView extends LinearLayout {
 									} catch (InterruptedException e) {
 										e.printStackTrace();
 									}
-									Log.i(TAG,"currentX="+currentX);
 									Message message=new Message();
 									message.what=UpdateButtonLocation;
 									sendBundle.putInt("buttonX", currentX);
@@ -335,9 +349,7 @@ public class MyFloatingView extends LinearLayout {
 	}
 
 	private void singleClick() {
-//		Util.getRunningActivityName(context);
 		doGestureOperation(sharedPreferences.getString("singleClick", "nothing"));
-//		Util.lockScreen(context);
 	}
 
 	private void doubleClick() {
@@ -388,14 +400,23 @@ public class MyFloatingView extends LinearLayout {
 		public void onLongPress(MotionEvent e) {
 			Log.i(TAG, "onLongPress-----" + getActionName(e.getAction()));
 			Util.vibrate(2000, context);
-			CanMoving = true;
+			if(Util.isLongPressMoving(sharedPreferences)) {
+				CanMoving = true;
+			}else{
+				mFLoatButton.setAlpha(Util.UnClickAlpha);
+				longClik();
+			}
 		}
 
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-//			Log.i(TAG,
-//					"onScroll-----" + getActionName(e2.getAction()) + ",(" + e1.getX() + "," + e1.getY() + ") ,("
-//							+ e2.getX() + "," + e2.getY() + ")");
+			Log.i(TAG,"onScroll e1.x="+e1.getX()+",e1.y="+e1.getY()+",e1.RawX="+e1.getRawX()+",e1.RawY="+e1.getRawY());
+			Log.i(TAG,"onScroll e2.x="+e2.getX()+",e2.y="+e2.getY()+",e2.RawX="+e2.getRawX()+",e2.RawY="+e2.getRawY());
+			if(CanMoving&&!Util.isLongPressMoving(sharedPreferences)){
+					wmParams.x = (int) e2.getRawX() - mFLoatButton.getMeasuredWidth() / 2;
+					wmParams.y = (int) e2.getRawY() - mFLoatButton.getMeasuredHeight() / 2;
+					mWindowManager.updateViewLayout(mFloatLayout, wmParams);
+			}
 			return false;
 		}
 

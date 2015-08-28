@@ -30,6 +30,17 @@
     </string-array>
 
     <!-- 上滑呼出的操作 -->
+    <string-array name="moveWay">
+        <item>单击移动(无滑动手势功能)</item>
+        <item>长按移动（无长按功能）</item>
+    </string-array>
+
+    <string-array name="moveWay_value">
+        <item>press</item>
+        <item>longPress</item>
+    </string-array>
+
+    <!-- 上滑呼出的操作 -->
     <string-array name="swipeUp">
         <item>调出后台任务</item>
         <item>Home键</item>
@@ -134,6 +145,7 @@
         <item>调出后台任务</item>
         <item>模拟返回键</item>
         <item>打开相机</item>
+        <item>锁屏</item>
         <item>无功能</item>
     </string-array>
 
@@ -142,6 +154,7 @@
         <item>recents</item>
         <item>back</item>
         <item>camera</item>
+        <item>lock</item>
         <item>nothing</item>
     </string-array>
 

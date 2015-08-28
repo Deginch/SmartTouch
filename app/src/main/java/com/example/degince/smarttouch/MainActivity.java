@@ -3,9 +3,7 @@ package com.example.degince.smarttouch;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.admin.DevicePolicyManager;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,7 +15,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
 import java.text.SimpleDateFormat;
@@ -27,10 +24,8 @@ import java.util.List;
 import android.content.Context;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
-import android.widget.Button;
 import android.widget.SeekBar;
 
-import com.example.degince.smarttouch.lockscreen.LockScreenAdmin;
 import com.example.degince.smarttouch.preference.MyListPreference;
 import com.example.degince.smarttouch.preference.MySeekBarPreference;
 import com.example.degince.smarttouch.version.UpdateChecker;
@@ -38,9 +33,9 @@ import com.example.degince.smarttouch.version.UpdateChecker;
 public class MainActivity extends PreferenceActivity implements OnPreferenceChangeListener, MySeekBarPreference.OnSeekBarPrefsChangeListener {
 	private String TAG = "MainActivity";
 	private static SharedPreferences sharedPreferences;
-	private MySeekBarPreference alphaSb, widthSb, heightSb, distanceSb;
+	private MySeekBarPreference alphaSb, widthSb;
 	private SwitchPreference started;
-	private MyListPreference shape;
+	private MyListPreference shape,moveWay, swipeUp, swipeDown,swipeLeft,swipeRight,longClick;
 	private String preferencesName = "com.example.degince.smarttouch_preferences";
 	private MyAccessibilityService accessibilityService;
 	private UpdateChecker update;
@@ -59,6 +54,15 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 		shape.setOnPreferenceChangeListener(this);
 		shape.setDefaultValue(Util.getButtonBackground(sharedPreferences));
 
+		moveWay=(MyListPreference)findPreference("moveWay");
+		moveWay.setOnPreferenceChangeListener(this);
+
+		swipeUp =(MyListPreference)findPreference("swipeUp");
+		swipeDown =(MyListPreference)findPreference("swipeDown");
+		swipeLeft=(MyListPreference)findPreference("swipeLeft");
+		swipeRight=(MyListPreference)findPreference("swipeRight");
+		longClick=(MyListPreference)findPreference("longClick");
+
 		started = (SwitchPreference) findPreference("started");
 		started.setOnPreferenceChangeListener(this);
 
@@ -74,9 +78,9 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 		widthSb.setDefaultProgressValue(Util.getSize(sharedPreferences));
 		widthSb.setOnSeekBarPrefsChangeListener(this);
 
-
 		update = new UpdateChecker(MainActivity.this);
 		remindUpdateApp();
+
 	}
 
 
@@ -207,6 +211,31 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 		} else if (preference.getKey().equals("shape")) {
 			Log.i(TAG, "改变形状");
 			accessibilityService.updateShape(newValue.toString());
+		}else if(preference.getKey().equals("moveWay")){
+			if(newValue.equals("longPress")){
+				swipeUp.setEnabled(true);
+				swipeUp.setTitle("向上滑动");
+				swipeDown.setEnabled(true);
+				swipeDown.setTitle("向下滑动");
+				swipeLeft.setEnabled(true);
+				swipeLeft.setTitle("向左滑动");
+				swipeRight.setEnabled(true);
+				swipeRight.setTitle("向右滑动");
+				longClick.setEnabled(false);
+				longClick.setTitle("长按（不可用）");
+			}else if(newValue.equals("press")){
+				swipeUp.setEnabled(false);
+				swipeUp.setTitle("向上滑动（不可用）");
+				swipeDown.setEnabled(false);
+				swipeDown.setTitle("向下滑动（不可用）");
+				swipeLeft.setEnabled(false);
+				swipeLeft.setTitle("向左滑动（不可用）");
+				swipeRight.setEnabled(false);
+				swipeRight.setTitle("向右滑动（不可用）");
+				longClick.setEnabled(true);
+				longClick.setTitle("长按");
+
+			}
 		}
 		return true;
 	}
@@ -225,7 +254,6 @@ public class MainActivity extends PreferenceActivity implements OnPreferenceChan
 	@Override
 	public void onStartTrackingTouch(String key, SeekBar seekBar) {
 		Log.i(TAG, "onStartTrackingTouch");
-
 	}
 
 	@Override

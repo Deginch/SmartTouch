@@ -35,12 +35,22 @@
             android:layout="@layout/list_items"
             android:title="大小    "/>
 
-    </PreferenceCategory>
+        <SwitchPreference
+            android:background="@color/barColor"
+            android:defaultValue="true"
+            android:key="vibrate"
+            android:layout="@layout/list_items"
+            android:title="震动"/>
 
-
-    <PreferenceCategory
-        android:layout="@layout/prefs_category_widget"
-        android:title="功能">
+        <com.example.degince.smarttouch.preference.MyListPreference
+            android:defaultValue="longPress"
+            android:dialogTitle="移动方式"
+            android:entries="@array/moveWay"
+            android:entryValues="@array/moveWay_value"
+            android:key="moveWay"
+            android:layout="@layout/list_items"
+            android:summary="移动方式"
+            android:title="移动方式"/>
 
         <SwitchPreference
             android:background="@color/barColor"
@@ -48,13 +58,13 @@
             android:key="autoMove"
             android:layout="@layout/list_items"
             android:title="自动移动至边缘"/>
+    </PreferenceCategory>
 
-        <SwitchPreference
-            android:background="@color/barColor"
-            android:defaultValue="true"
-            android:key="vibrate"
-            android:layout="@layout/list_items"
-            android:title="震动"/>
+
+    <PreferenceCategory
+        android:layout="@layout/prefs_category_widget"
+        android:title="功能">
+
 
         <com.example.degince.smarttouch.preference.MyListPreference
             android:defaultValue="nothing"
@@ -116,6 +126,17 @@
             android:layout="@layout/list_items"
             android:summary="返回键"
             android:title="双击"/>
+
+        <com.example.degince.smarttouch.preference.MyListPreference
+            android:defaultValue="lock"
+            android:enabled="false"
+            android:dialogTitle="长按触发的功能"
+            android:entries="@array/longClick"
+            android:entryValues="@array/longClick_value"
+            android:key="longClick"
+            android:layout="@layout/list_items"
+            android:summary="长按"
+            android:title="长按（不可用）"/>
 
     </PreferenceCategory>
 

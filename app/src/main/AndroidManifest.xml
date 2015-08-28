@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.degince.smarttouch"
-          android:versionCode="3"
-          android:versionName="1.2.0"  >
+    package="com.example.degince.smarttouch" >
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.GET_TASKS" />

@@ -193,4 +193,13 @@ public class Util {
 	public static boolean isAutoMove(SharedPreferences sharedPreferences){
 		return sharedPreferences.getBoolean("autoMove",true);
 	}
+
+	//是否长按移动
+	public static boolean isLongPressMoving(SharedPreferences sharedPreferences){
+		if(sharedPreferences.getString("moveWay","longPress").equals("longPress")){
+			return true;
+		}else{
+			return false;
+		}
+	}
 }
